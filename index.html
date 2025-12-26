@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Store Pro</title>
+    <style>
+        :root { --bg: #f8f9fa; --card: #ffffff; --text: #2d3436; --primary: #2ecc71; --dark: #27ae60; --gray: #cccccc; }
+        [data-theme="dark"] { --bg: #1a1a1a; --card: #2d2d2d; --text: #f5f6fa; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; background: var(--bg); color: var(--text); transition: 0.3s; }
+        header { background: var(--dark); color: white; padding: 15px; text-align: center; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 1000px; margin: 20px auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; padding: 15px; }
+        .card { background: var(--card); border-radius: 15px; padding: 15px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .card img { width: 100%; height: 150px; object-fit: cover; border-radius: 10px; }
+        .qty-controls { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 10px 0; }
+        .qty-btn { background: var(--primary); color: white; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; }
+        .add-btn { background: var(--primary); color: white; border: none; padding: 12px; width: 100%; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        #cart-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); padding: 15px; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); display: none; justify-content: space-around; align-items: center; z-index: 99; box-sizing: border-box; }
+        .checkout-btn { background: var(--dark); color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index: 1000; overflow-y: auto; }
+        .modal-content { background: var(--card); width: 92%; max-width: 450px; margin: 30px auto; padding: 20px; border-radius: 20px; box-sizing: border-box; }
+        input, textarea { width: 100%; padding: 12px; margin: 10px 0; background: var(--bg); color: var(--text); border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        .pay-opt { display: flex; gap: 10px; margin: 15px 0; }
+        .pay-btn { flex: 1; padding: 15px; border: 2px solid #ddd; border-radius: 10px; cursor: pointer; background: var(--card); font-weight: bold; text-align: center; }
+        .pay-btn.active { border-color: var(--primary); background: #eafff2; color: #27ae60; }
+        #qr-section { display: none; text-align: center; margin-top: 15px; padding: 10px; border: 2px dashed var(--primary); border-radius: 10px; }
+        #finalBtn { width:100%; padding:18px; border:none; border-radius:12px; font-weight:bold; font-size:1.1rem; margin-top:15px; transition: 0.3s; }
+        .summary-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div style="width: 50px;"></div>
+    <h2>🚀 APG & Sons</h2>
+    <button onclick="toggleTheme()" style="background:none; border:1px solid white; color:white; border-radius:5px; padding:5px 10px; cursor:pointer;">🌓 Mode</button>
+</header>
+
+<div class="container">
+    <div class="card">
+        <img src="images/1.png" alt="Item 1">
+        <h4>Digital Counter Weighing Machine (30kg)</h4><p>Price: ₹3250</p>
+        <div class="qty-controls">
+            <button class="qty-btn" onclick="updateQty('q1', -1)">-</button><span id="q1">1</span><button class="qty-btn" onclick="updateQty('q1', 1)">+</button>
+        </div>
+        <button class="add-btn" onclick="addToCart('weighing-scale(30kg)', 'q1', 3250)">Add to Cart</button>
+    </div>
+    <div class="card">
+        <img src="images/2.png" alt="Item 2">
+        <h4>Platform Weighing Scale (100kg Heavy Duty)</h4><p>Price: ₹5800</p>
+        <div class="qty-controls">
+            <button class="qty-btn" onclick="updateQty('q2', -1)">-</button><span id="q2">1</span><button class="qty-btn" onclick="updateQty('q2', 1)">+</button>
+        </div>
+        <button class="add-btn" onclick="addToCart('weighing-scale(100kg)', 'q2', 5800)">Add to Cart</button>
+    </div>
+    <div class="card">
+        <img src="images/3.png" alt="Item 3">
+        <h4>Lead-Acid Battery (6V 4.5Ah/5Ah)</h4><p>Price: ₹550</p>
+        <div class="qty-controls">
+            <button class="qty-btn" onclick="updateQty('q3', -1)">-</button><span id="q3">1</span><button class="qty-btn" onclick="updateQty('q3', 1)">+</button>
+        </div>
+        <button class="add-btn" onclick="addToCart('Battery', 'q3', 550)">Add to Cart</button>
+    </div>
+    <div class="card">
+        <img src="images/4.png" alt="Item 4">
+        <h4>Note Counting Machine (with Fake Detection)</h4><p>Price: ₹8200</p>
+        <div class="qty-controls">
+            <button class="qty-btn" onclick="updateQty('q4', -1)">-</button><span id="q4">1</span><button class="qty-btn" onclick="updateQty('q4', 1)">+</button>
+        </div>
+        <button class="add-btn" onclick="addToCart('note-counter', 'q4', 8200)">Add to Cart</button>
+    </div>
+    <div class="card">
+        <img src="images/5.png" alt="Item 5">
+        <h4>Hand Impulse Sealer Machine (8-inch)</h4><p>Price: ₹1200</p>
+        <div class="qty-controls">
+            <button class="qty-btn" onclick="updateQty('q5', -1)">-</button><span id="q5">1</span><button class="qty-btn" onclick="updateQty('q5', 1)">+</button>
+        </div>
+        <button class="add-btn" onclick="addToCart('sealer-machine', 'q5', 1200)">Add to Cart</button>
+    </div>
+</div>
+
+<div id="cart-bar">
+    <span id="cart-text" style="font-weight: bold;">0 Items</span>
+    <button class="checkout-btn" onclick="openModal()">Review & Order</button>
+</div>
+
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <div id="order-form-section">
+            <h3>🛒 Order Summary</h3>
+            <div id="summary-list"></div>
+            <div id="total-bill" style="font-size: 1.3rem; font-weight: bold; text-align: right; margin: 15px 0; color: var(--dark);"></div>
+            <input type="text" id="custName" placeholder="Enter Name" oninput="validateForm()">
+            <input type="tel" id="custPhone" placeholder="Mobile Number" oninput="validateForm()">
+            <textarea id="custAddress" rows="3" placeholder="Address..." oninput="validateForm()"></textarea>
+            <h4>Payment Method:</h4>
+            <div class="pay-opt">
+                <div class="pay-btn" id="cod-opt" onclick="setPayment('COD')">COD</div>
+                <div class="pay-btn" id="qr-opt" onclick="setPayment('QR')">QR Scan</div>
+            </div>
+            <div id="qr-section">
+                <p>Scan to Pay ₹<span id="qr-amount"></span></p>
+                <img id="qr-img" src="" style="width: 200px; border-radius: 10px;">
+                <div style="margin-top:10px;">
+                    <input type="checkbox" id="payCheck" onchange="validateForm()"> <label for="payCheck">I have scanned & paid</label>
+                </div>
+            </div>
+            <button onclick="submitOrder()" id="finalBtn" disabled style="background:var(--gray); color:white; cursor:not-allowed;">Confirm Order</button>
+            <button onclick="closeModal()" style="width:100%; background:none; border:none; color:red; margin-top:10px; cursor:pointer;">Go Back</button>
+        </div>
+        <div id="success-screen" style="display:none; text-align:center; padding:30px;">
+            <div style="font-size: 60px; color: var(--primary);">✔</div>
+            <h2>Order Placed!</h2><p>Wait for confirmation.</p>
+            <button onclick="location.reload()" style="padding:10px 20px; background:var(--dark); color:white; border:none; border-radius:10px;">Done</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyFo-gBoP2zOuYYTufx88ISyN4CegoF3lYQNTw4P9txkjcK_fRnd0s4Mlhv5dK9oRbb/exec";
+    const UPI_ID = "adhikarinikhil02@oksbi";
+    let cart = [], paymentMethod = "";
+
+    function updateQty(id, change) {
+        let el = document.getElementById(id), val = parseInt(el.innerText) + change;
+        if (val >= 1) el.innerText = val;
+    }
+
+    function addToCart(n, qId, p) {
+        let q = parseInt(document.getElementById(qId).innerText);
+        cart.push({ name: n, qty: q, total: (q * p) });
+        document.getElementById('cart-bar').style.display = 'flex';
+        document.getElementById('cart-text').innerText = cart.length + " Items Added";
+        alert(n + " Added!");
+    }
+
+    function validateForm() {
+        const n = document.getElementById('custName').value, p = document.getElementById('custPhone').value, a = document.getElementById('custAddress').value, btn = document.getElementById('finalBtn');
+        const qrChecked = document.getElementById('payCheck').checked;
+        let valid = n && p && a && paymentMethod;
+        if (paymentMethod === 'QR' && !qrChecked) valid = false;
+        
+        btn.disabled = !valid;
+        btn.style.background = valid ? "var(--primary)" : "var(--gray)";
+        btn.style.cursor = valid ? "pointer" : "not-allowed";
+    }
+
+    function setPayment(m) {
+        paymentMethod = m;
+        document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(m === 'COD' ? 'cod-opt' : 'qr-opt').classList.add('active');
+        if(m === 'QR') {
+            document.getElementById('qr-section').style.display = 'block';
+            let total = cart.reduce((s, i) => s + i.total, 0);
+            document.getElementById('qr-amount').innerText = total;
+            let upi = `upi://pay?pa=${UPI_ID}&pn=Store&am=${total}&cu=INR`;
+            document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upi)}`;
+        } else { document.getElementById('qr-section').style.display = 'none'; }
+        validateForm();
+    }
+
+    function openModal() {
+        document.getElementById('modal').style.display = 'block';
+        let html = "", total = 0;
+        cart.forEach(i => { total += i.total; html += `<div class="summary-row"><span>${i.name}(x${i.qty})</span><span>₹${i.total}</span></div>`; });
+        document.getElementById('summary-list').innerHTML = html;
+        document.getElementById('total-bill').innerText = "Total: ₹" + total;
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
+                const d = await res.json(); document.getElementById('custAddress').value = d.display_name; validateForm();
+            });
+        }
+    }
+
+    async function submitOrder() {
+        const btn = document.getElementById('finalBtn'); btn.innerText = "Processing..."; btn.disabled = true;
+        let total = cart.reduce((s, i) => s + i.total, 0);
+        const payload = {
+            name: document.getElementById('custName').value, phone: document.getElementById('custPhone').value,
+            address: document.getElementById('custAddress').value, item: cart.map(i => `${i.name}(x${i.qty})`).join(", "),
+            qty: `₹${total} | ${paymentMethod}`
+        };
+        try {
+            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+            document.getElementById('order-form-section').style.display = 'none';
+            document.getElementById('success-screen').style.display = 'block';
+        } catch (e) { alert("Error!"); btn.disabled = false; btn.innerText = "Confirm Order"; }
+    }
+    function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }
+    function closeModal() { document.getElementById('modal').style.display = 'none'; }
+</script>
+</body>
+</html>
+
+
+
